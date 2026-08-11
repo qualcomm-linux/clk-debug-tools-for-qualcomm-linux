@@ -1,0 +1,35 @@
+name: Commit Message Check Reusable Workflow
+on:
+  workflow_call:
+    inputs:      
+      extra-options:
+        required: false
+        type: string
+        default: '{}'
+        description: 'Extra options as YAML/JSON object string'
+
+permissions:
+  contents: read
+  
+jobs:
+  run-commit-msg-check:
+    name: Run Commit Message Check
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Prepare action options
+        id: prepare-options
+        env:
+          EXTRA_OPTIONS: ${{ inputs.extra-options || '{}' }}
+        run: |
+          FIXED='{"base":"${{ github.event.pull_request.base.sha }}","head":"${{ github.event.pull_request.head.sha }}"}'
+          MERGED=$(printf '%s\n%s' "$EXTRA_OPTIONS" "$FIXED" | jq -sc '.[0] * .[1]')
+          echo "options=$MERGED" >> "$GITHUB_OUTPUT"
+      - name: Run Commit Message Check Action
+        uses: qualcomm/commit-msg-check-action@v3
+        with: ${{ fromJSON(steps.prepare-options.outputs.options) }}

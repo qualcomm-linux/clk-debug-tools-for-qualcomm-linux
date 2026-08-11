@@ -1,0 +1,50 @@
+name: Copyright License Check Reusable Workflow
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  
+jobs:
+  run-copyright-license-check:
+    if: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
+    name: Run Copyright License Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0    # Full history so we can diff properly.
+                            # On pull_request events, actions/checkout fetches
+                            # refs/pull/N/merge whose parents are base.sha and
+                            # head.sha — both are already present after this step.
+         
+ 
+      - name: Get base and head SHAs (from event payload, no token needed)
+        id: shas
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch --no-tags --prune origin \
+            "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Generate patch for PR changes only (GitHub PR-style 3-dot diff)
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          BASE="origin/${BASE_REF}"
+          HEAD="${HEAD_SHA}"
+
+          # GitHub PRs show a three-dot diff: merge-base(base, head) -> head.
+          # Using the live base branch tip (not the stale SHA from the event
+          # payload) ensures the patch always matches the GitHub PR UI diff.
+
+          git diff "${BASE}...${HEAD}" > pr.patch
+          head -n 100 pr.patch
+
+      - name: Run Copyright License Check Action
+        uses: qualcomm/copyright-license-checker-action@f67062de638f6c0c00a46675b62f2cb90b4d3ac6
+        with:
+          patch_file: pr.patch
+          repo_name: ${{ github.repository }}
