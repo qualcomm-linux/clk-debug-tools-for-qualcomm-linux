@@ -1,0 +1,40 @@
+From dee94d6f52a9154a851abbb33cc0903e157d50d5 Mon Sep 17 00:00:00 2001
+From: Jagadeesh Kona <jagadeesh.kona@oss.qualcomm.com>
+Date: Sat, 8 Aug 2026 16:36:34 +0530
+Subject: [PATCH 3/3] arm64: dts: qcom: Add mccc syscon device node on SC7280
+
+Add mccc syscon device node which is used to measure ddr
+clock frequency on SC7280 platform.
+
+Signed-off-by: Jagadeesh Kona <jagadeesh.kona@oss.qualcomm.com>
+---
+ arch/arm64/boot/dts/qcom/kodiak.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/qcom/kodiak.dtsi b/arch/arm64/boot/dts/qcom/kodiak.dtsi
+index f2da3706d5c8..dafe15cba70e 100644
+--- a/arch/arm64/boot/dts/qcom/kodiak.dtsi
++++ b/arch/arm64/boot/dts/qcom/kodiak.dtsi
+@@ -975,6 +975,11 @@ soc: soc@0 {
+ 		dma-ranges = <0 0 0 0 0x10 0>;
+ 		compatible = "simple-bus";
+ 
++		mccc: syscon@90ba000 {
++			compatible = "syscon";
++			reg = <0x0 0x090ba000 0x0 0x54>;
++		};
++
+ 		gcc: clock-controller@100000 {
+ 			compatible = "qcom,gcc-sc7280";
+ 			reg = <0 0x00100000 0 0x1f0000>;
+@@ -988,6 +993,7 @@ gcc: clock-controller@100000 {
+ 				      "ufs_phy_rx_symbol_0_clk", "ufs_phy_rx_symbol_1_clk",
+ 				      "ufs_phy_tx_symbol_0_clk",
+ 				      "usb3_phy_wrapper_gcc_usb30_pipe_clk";
++			qcom,mccc = <&mccc>;
+ 			#clock-cells = <1>;
+ 			#reset-cells = <1>;
+ 			#power-domain-cells = <1>;
+-- 
+2.34.1
+
