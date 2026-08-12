@@ -62,7 +62,7 @@ jobs:
             echo "head_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
           fi
       - name: Run Dependency Review Action
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           base-ref: ${{ steps.setrefs.outputs.base_ref }}
           head-ref: ${{ steps.setrefs.outputs.head_ref }}
